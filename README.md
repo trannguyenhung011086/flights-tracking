@@ -10,6 +10,15 @@ The tool will query the `FlightAPI.io` API and display a table with two columns:
 - Country – The country flights are arriving from.
 - Number of Flights – The number of flights originating from that country and arriving at the entered airport.
 
+## Sample screenshots
+
+- Missing input
+  ![alt text](images/image.png)
+- Invalid input
+  ![alt text](images/image-2.png)
+- Correct input (use `SIN` for mocked data)
+  ![alt text](images/image-3.png)
+
 # Structure
 
 ```
