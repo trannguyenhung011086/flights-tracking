@@ -33,9 +33,9 @@ async def get_flights_arrivals(airport_code: str, day: int = 1):
     return data
 
 
-@app.get("/api")
+@app.get("/api/healthz")
 def read_root():
-    return {"Hello": "World"}
+    return {"Running": "OK"}
 
 
 if __name__ == "__main__":
