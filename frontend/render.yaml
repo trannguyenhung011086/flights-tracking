@@ -1,9 +1,0 @@
-services:
-  - type: web
-    name: flights-tracking-frontend
-    runtime: static
-    buildCommand: npm install && npm run build
-    startCommand: serve -s build
-    envVars:
-      - key: REACT_APP_API_BASE_URL
-        value: 'https://flights-tracking-backend.onrender.com/api'
