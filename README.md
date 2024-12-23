@@ -81,6 +81,6 @@ PORT=5001
 
 For demo purpose, both backend and frontend parts use render.com platform to host on FREE tier.
 
-- Backend uses `dockerfile` to containerize the application.
-- Frontend is built and exposed as a static site.
+- Backend uses `dockerfile` to containerize the application. (url: https://flights-tracking-backend.onrender.com/api/healthz)
+- Frontend is built and exposed as a static site. (url: https://flights-tracking-frontend.onrender.com/)
 - The `render.yaml` defines backend as a web service and frontend as a static site to deploy.
