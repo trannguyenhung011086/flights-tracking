@@ -1,24 +1,33 @@
-# Function to fetch data from the external API
-from collections import defaultdict
 import json
 from fastapi import HTTPException
 import httpx
 import os
 from dotenv import load_dotenv
+from .utils import (
+    get_flights_data,
+    get_mock_data_file,
+)
 
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "../../.env"))
 
+load_dotenv()
 
 USE_MOCK_DATA = os.getenv("USE_MOCK_DATA", "false").lower() == "true"
-MOCK_DATA_FILE = os.path.join(os.path.dirname(__file__), "sample.json")
-
 API_KEY = os.getenv("API_KEY")
 
 
-# the free tier has 20 credits for an account so we need to use mock data for this demo
 async def get_arrival_flights_from_external_api(
     airport_code: str, day: int = 1
 ) -> list:
+    # Try to use mock data first if available for demo purposes
+    mock_file = get_mock_data_file(airport_code)
+    try:
+        with open(mock_file, "r") as file:
+            print(f"Found mock data for {airport_code}, using it instead of API")
+            data_str = file.read()
+            return get_flights_data(airport_code, day, data_str)
+    except FileNotFoundError:
+        print(f"No mock data for {airport_code}, falling back to API")
+        pass
 
     url = f"https://api.flightapi.io/compschedule/{API_KEY}?mode=arrivals&iata={airport_code}&day={day}"
     print(url)
@@ -27,51 +36,23 @@ async def get_arrival_flights_from_external_api(
         try:
             response = await client.get(url, timeout=30)
             response.raise_for_status()
-            return response.json()
+            # Convert response data to string for caching
+            data_str = json.dumps(response.json())
+            return get_flights_data(airport_code, day, data_str)
         except httpx.RequestError as e:
             raise HTTPException(
                 status_code=500, detail=f"External API request failed: {str(e)}"
             )
 
 
-async def get_arrival_flights_from_mock_data(airport_code: str = "SIN") -> list:
+async def get_arrival_flights_from_mock_data(
+    airport_code: str = "SIN", day: int = 1
+) -> list:
     try:
-        with open(MOCK_DATA_FILE, "r") as file:
-            mock_data = json.load(file)
-
-        aggregated_flights = []
-
-        for entry in mock_data:
-            try:
-                arrivals_data = entry["airport"]["pluginData"]["schedule"]["arrivals"][
-                    "data"
-                ]
-                aggregated_flights.extend(arrivals_data)
-            except KeyError as e:
-                raise HTTPException(
-                    status_code=500, detail=f"Error in mock data structure: {e}"
-                )
-        print(f"Total flights to {airport_code}:", len(aggregated_flights))
-
-        country_flight_count = defaultdict(int)
-
-        for flight in aggregated_flights:
-            try:
-                country = flight["flight"]["airport"]["origin"]["position"]["country"][
-                    "name"
-                ]
-                country_flight_count[country] += 1
-            except KeyError as e:
-                continue
-
-        country_flight_list = [
-            {"country": country, "flights": count}
-            for country, count in country_flight_count.items()
-        ]
-
-        print("The first country:", country_flight_list[0])
-        return country_flight_list
-
+        mock_data_file = get_mock_data_file(airport_code)
+        with open(mock_data_file, "r") as file:
+            data_str = file.read()
+            return get_flights_data(airport_code, day, data_str)
     except FileNotFoundError:
         raise HTTPException(status_code=500, detail="Mock data file not found")
     except json.JSONDecodeError:
@@ -80,8 +61,8 @@ async def get_arrival_flights_from_mock_data(airport_code: str = "SIN") -> list:
 
 async def get_arrival_flights(airport_code: str, day: int) -> list:
     if USE_MOCK_DATA:
-        print("Using mock data")
+        print("Using mock data, simulating external API call...")
         return await get_arrival_flights_from_mock_data(airport_code)
     else:
-        print("Fetching data from external API")
+        print("Fetching data from external API...")
         return await get_arrival_flights_from_external_api(airport_code, day)

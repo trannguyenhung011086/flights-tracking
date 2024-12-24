@@ -5,7 +5,7 @@ const FlightArrivals = () => {
   const [airportCode, setAirportCode] = useState('');
   const [error, setError] = useState('');
 
-  const { data: flights, error: queryError, refetch } = useFlightArrivals(airportCode);
+  const { data: flights, error: queryError, refetch, isLoading } = useFlightArrivals(airportCode);
 
   const handleChange = (e) => {
     setAirportCode(e.target.value);
@@ -40,27 +40,33 @@ const FlightArrivals = () => {
         <button type="submit">Get Flight Arrivals</button>
       </form>
 
-      <h2>Flight Arrivals for {airportCode}</h2>
+      <h2>Today Flight Arrivals for {airportCode}</h2>
 
-      {error && <div>{`Error: ${error}`}</div>}
+      {isLoading ? (
+        <div>Loading data, please wait...</div>
+      ) : (
+        <>
+          {error && <div>{`Error: ${error}`}</div>}
 
-      {flights && (
-        <table>
-          <thead>
-            <tr>
-              <th>Country</th>
-              <th># of Flights</th>
-            </tr>
-          </thead>
-          <tbody>
-            {flights?.map((flight, index) => (
-              <tr key={index}>
-                <td>{flight.country}</td>
-                <td>{flight.flights}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+          {flights && (
+            <table>
+              <thead>
+                <tr>
+                  <th>Country</th>
+                  <th># of Flights</th>
+                </tr>
+              </thead>
+              <tbody>
+                {flights?.map((flight, index) => (
+                  <tr key={index}>
+                    <td>{flight.country}</td>
+                    <td>{flight.flights}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </>
       )}
     </div>
   );
